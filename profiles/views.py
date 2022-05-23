@@ -1,6 +1,5 @@
 from django.http import Http404
 from rest_framework import status # import for the put method
-from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from .models import Profile
@@ -15,7 +14,9 @@ class ProfileList(APIView):
     """
     def get(self, request):
         profiles = Profile.objects.all()
-        serializer = ProfileSerializer(profiles, many=True)
+        serializer = ProfileSerializer(
+            profiles, many=True, context={'request': request}
+        )
         return Response(serializer.data)
 
 
@@ -36,7 +37,9 @@ class ProfileDetail(APIView):
         # 2. serialize the Profile model instance
         # 3. return serializer data in the response
         profile = self.get_object(pk)
-        serializer = ProfileSerializer(profile)
+        serializer = ProfileSerializer(
+            profile, context={'request': request}
+        )
         return Response(serializer.data)
 
     def put(self, request, pk):
@@ -45,7 +48,9 @@ class ProfileDetail(APIView):
         # 3. if data is valid, save and return the instance
         # 4. if data is invalid, return the 404 error
         profile = self.get_object(pk)
-        serializer = ProfileSerializer(profile, data=request.data)
+        serializer = ProfileSerializer(
+            profile, data=request.data,  context={'request': request}
+        )
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
