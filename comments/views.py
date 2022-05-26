@@ -1,4 +1,5 @@
 from rest_framework import generics, permissions
+from django_filters.rest_framework import DjangoFilterBackend
 from drf_api.permissions import IsOwnerOrReadOnly
 from .models import Comment
 from .serializers import CommentSerializer, CommentDetailSerializer
@@ -14,7 +15,13 @@ class CommentList(generics.ListCreateAPIView):
     # we don't want anonymous users to comment
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     queryset = Comment.objects.all()
-    
+    filter_backends = [DjangoFilterBackend]
+    # we are simply returning the post id,
+    # this post id will then be used to filter the comments
+    filter_fields = [
+        'post'
+    ]
+
     def perform_create(self, serializer):  # make comments associated with a user upon creation
         serializer.save(owner=self.request.user)
 
