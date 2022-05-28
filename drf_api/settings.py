@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 
 from pathlib import Path
 import os
+import dj_database_url  # required to connect to the database
 
 if os.path.exists('env.py'):
     import env
@@ -49,6 +50,9 @@ JWT_AUTH_SECURE = True
 JWT_AUTH_COOKIE = 'my-app-auth' # access token
 JWT_AUTH_REFRESH_COOKIE = 'my-refresh-token' # refresh token
 
+# allow to have the front end app and the API deployed to different platforms
+JWT_AUTH_SAMESITE = 'None'
+
 REST_AUTH_SERIALIZERS = {
     'USER_DETAILS_SERIALIZER': 'drf_api.serializers.CurrentUserSerializer'
 }
@@ -57,12 +61,28 @@ REST_AUTH_SERIALIZERS = {
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-x&rf9ud22)cmu7lb@5_vl1v*un7)#=e6c6%h2&-#&8#j96%q5z'
+SECRET_KEY = os.environ.get('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = 'DEV' in os.environ  # True in deployment, False in production
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    'moments-drf-api-ah.herokuapp.com',
+    'localhost',
+]
+
+if 'CLIENT_ORIGIN' in os.environ:
+    CORS_ALLOWED_ORIGINS = [
+        os.environ.get('CLIENT_ORIGIN')
+    ]
+else:
+    CORS_ALLOWED_ORIGIN_REGEXES = [
+        r"^https://.*\.gitpod\.io$",
+    ]
+
+# allow sending cookies in cross-origin requests
+# Users won't be able to authenticate if not set
+CORS_ALLOW_CREDENTIALS = True
 
 
 # Application definition
@@ -85,6 +105,7 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     'dj_rest_auth.registration',
+    'corsheaders',
 
     'profiles',
     'posts',
@@ -96,6 +117,7 @@ INSTALLED_APPS = [
 SITE_ID = 1
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -130,10 +152,15 @@ WSGI_APPLICATION = 'drf_api.wsgi.application'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
+    # deployment
+    'default': ({
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    # production
+    } if 'DEV' in os.environ else dj_database_url.parse(
+        os.environ.get('DATABASE_URL')
+    )
+    )
 }
 
 
