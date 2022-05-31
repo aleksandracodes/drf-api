@@ -9,10 +9,9 @@ https://docs.djangoproject.com/en/3.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
-
+import re
 from pathlib import Path
 import os
-import re
 import dj_database_url  # required to connect to the database
 
 if os.path.exists('env.py'):
@@ -48,8 +47,8 @@ if 'DEV' not in os.environ:
 
 REST_USE_JWT = True
 JWT_AUTH_SECURE = True
-JWT_AUTH_COOKIE = 'my-app-auth' # access token
-JWT_AUTH_REFRESH_COOKIE = 'my-refresh-token' # refresh token
+JWT_AUTH_COOKIE = 'my-app-auth'  # access token
+JWT_AUTH_REFRESH_COOKIE = 'my-refresh-token'  # refresh token
 
 # allow to have the front end app and the API deployed to different platforms
 JWT_AUTH_SAMESITE = 'None'
